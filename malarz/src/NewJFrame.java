@@ -2,9 +2,11 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JColorChooser;
-
+import java.io.File;
+import javax.imageio.ImageIO;
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -19,8 +21,7 @@ public class NewJFrame extends javax.swing.JFrame {
     int old_mouse_x = 0;
     int old_mouse_y = 0;
     Graphics2D grafika;
-    Graphics2D grafika_preview;
-    
+
     boolean draw_figure = false;
     int first_mouse_x = 0;
     int first_mouse_y = 0;
@@ -28,6 +29,9 @@ public class NewJFrame extends javax.swing.JFrame {
     int old_height = 0;
     int old_evtx = 0;
     int old_evty = 0;
+    BufferedImage canvas, canvas_preview;
+
+
     
     ArrayList<Integer> ListX = new ArrayList<Integer>();
     ArrayList<Integer> ListY = new ArrayList<Integer>();
@@ -36,9 +40,7 @@ public class NewJFrame extends javax.swing.JFrame {
     /**
      * Creates new form NewJFrame
      */
-    public NewJFrame() {
-        initComponents();
-    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -219,11 +221,20 @@ public class NewJFrame extends javax.swing.JFrame {
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-E
+    public NewJFrame() {
+        initComponents();
+        int width = jPanel1.getWidth();
+        int height = jPanel1.getHeight();
+        System.out.println(width);
+        System.out.println(height);
+        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        canvas_preview = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
+    }
     private void ClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearActionPerformed
         grafika.setColor(Color.WHITE);
-        grafika.fillRect(0, 0, 10000, 10000);
+        grafika.clearRect(0, 0, 10000, 10000);
         grafika.setColor(brushColor);
     }//GEN-LAST:event_ClearActionPerformed
 
@@ -247,7 +258,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
     private void jPanel1MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel1MouseDragged
         if(Tools.getSelectedIndex()==0){
-            grafika = (Graphics2D)jPanel1.getGraphics();
+            grafika = (Graphics2D)canvas.createGraphics();
             if(grafika != null){
                 grafika.setColor(brushColor);
                 grafika.setStroke(new BasicStroke(Width.getSelectedIndex()+1));
@@ -258,21 +269,21 @@ public class NewJFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jPanel1MouseDragged
 
-    private void jPanel1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel1MouseClicked
+    private void jPanel1MouseClicked(java.awt.event.MouseEvent evt) {
         if(Tools.getSelectedIndex()>0 && draw_figure == false){
             draw_figure = true;
             first_mouse_x  = old_mouse_x;
             first_mouse_y = old_mouse_y;
             old_width=0;
             old_height=0;
-            
-        }else if(Tools.getSelectedIndex()>0 && draw_figure == true) {
+
+        }else if(Tools.getSelectedIndex()>0 && Tools.getSelectedIndex() != 4 && draw_figure == true) {
             draw_figure =  false;
         }
         int radius = 3;
         if(Tools.getSelectedIndex()==4){
-            grafika = (Graphics2D)jPanel1.getGraphics();
-            
+            grafika = (Graphics2D)canvas.getGraphics();
+
             ListX.add(evt.getX());
             ListY.add(evt.getY());
             grafika.fillOval(evt.getX()- radius, evt.getY() - radius, 2*radius, 2*radius);
@@ -282,7 +293,7 @@ public class NewJFrame extends javax.swing.JFrame {
                 ListY.remove(size-1);
                 ListX.add(ListX.get(0));
                 ListY.add(ListY.get(0));
-                
+
                 int[] arrayx = new int[ListX.size()];
                 for (int i = 0; i < ListX.size(); i++) {
                     arrayx[i] = ListX.get(i);
@@ -291,33 +302,35 @@ public class NewJFrame extends javax.swing.JFrame {
                 for (int i = 0; i < ListY.size(); i++) {
                     arrayy[i] = ListY.get(i);
                 }
-                
+
                 grafika.setColor(brushColor);
                 grafika.fillPolygon(arrayx, arrayy, arrayy.length);
-                
-                
-                
-                
-                
-                
-                
-                
-                
+
+
+
+
+
+
+
+
                 ListX.clear();
                 ListY.clear();
+                draw_figure = false;
             }
-            
-        }
-    
-    }//GEN-LAST:event_jPanel1MouseClicked
+            first_mouse_x =  evt.getX();
+            first_mouse_y =  evt.getY();
 
-    private void jPanel1MouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel1MouseMoved
+        }
+
+    }
+
+    private void jPanel1MouseMoved(java.awt.event.MouseEvent evt) {
         if (draw_figure == true){
             int a;
             int b;
             if(first_mouse_x < evt.getX()){
                 a = first_mouse_x;
-                
+
             }else {
                 a  = evt.getX();
             }
@@ -326,11 +339,11 @@ public class NewJFrame extends javax.swing.JFrame {
             }else  {
                 b = evt.getY();
             }
-            
+
             int width = evt.getX() - a;
             int height  = evt.getY()  - b;
-            
-            grafika = (Graphics2D)jPanel1.getGraphics();
+
+            grafika = (Graphics2D)canvas.createGraphics();
             if (Tools.getSelectedIndex() == 1)
             {
                 grafika.setColor(Color.WHITE);
@@ -344,22 +357,31 @@ public class NewJFrame extends javax.swing.JFrame {
                 grafika.fillOval(first_mouse_x, first_mouse_y, old_width, old_height);
                 grafika.setColor(brushColor);
                 grafika.fillOval(first_mouse_x, first_mouse_y, width, height);
-                
+
             }
             if (Tools.getSelectedIndex() == 2)
             {
-                
+
                 grafika.setColor(Color.WHITE);
                 grafika.drawLine(first_mouse_x, first_mouse_y, old_evtx, old_evty);
                 grafika.setColor(brushColor);
                 grafika.drawLine(first_mouse_x, first_mouse_y, evt.getX(), evt.getY());
-                
+
+            }
+            if (Tools.getSelectedIndex() == 4)
+            {
+
+                grafika.setColor(Color.WHITE);
+                grafika.drawLine(first_mouse_x, first_mouse_y, old_evtx, old_evty);
+                grafika.setColor(brushColor);
+                grafika.drawLine(first_mouse_x, first_mouse_y, evt.getX(), evt.getY());
+
             }
             old_width = width;
             old_evtx = evt.getX();
             old_evty = evt.getY();
             old_height = height;
-            
+
         }
     }//GEN-LAST:event_jPanel1MouseMoved
 
