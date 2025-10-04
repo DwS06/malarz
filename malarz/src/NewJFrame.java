@@ -1,7 +1,5 @@
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JColorChooser;
@@ -21,7 +19,7 @@ public class NewJFrame extends javax.swing.JFrame {
     int old_mouse_x = 0;
     int old_mouse_y = 0;
     Graphics2D grafika;
-
+    Graphics2D previewgrafika;
     boolean draw_figure = false;
     int first_mouse_x = 0;
     int first_mouse_y = 0;
@@ -52,7 +50,7 @@ public class NewJFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        preview = new javax.swing.JPanel();
+        preview = new DrawingPanel();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         ToolsLabel2 = new javax.swing.JLabel();
@@ -230,12 +228,17 @@ public class NewJFrame extends javax.swing.JFrame {
         System.out.println(height);
         canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         canvas_preview = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        
+        grafika = (Graphics2D) canvas.createGraphics();
+        previewgrafika = (Graphics2D) canvas_preview.createGraphics();
+        grafika.setColor(Color.WHITE);
+        grafika.fillRect(0, 0, width, height);
+        grafika.setColor(brushColor);
     }
     private void ClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearActionPerformed
         grafika.setColor(Color.WHITE);
-        grafika.clearRect(0, 0, 10000, 10000);
+        grafika.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         grafika.setColor(brushColor);
+        preview.repaint();
     }//GEN-LAST:event_ClearActionPerformed
 
     private void ColorFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ColorFieldActionPerformed
@@ -263,6 +266,7 @@ public class NewJFrame extends javax.swing.JFrame {
                 grafika.setColor(brushColor);
                 grafika.setStroke(new BasicStroke(Width.getSelectedIndex()+1));
                 grafika.drawLine(old_mouse_x, old_mouse_y, evt.getX(), evt.getY());
+                preview.repaint();
             }
             old_mouse_x = evt.getX();
             old_mouse_y = evt.getY();
@@ -278,6 +282,7 @@ public class NewJFrame extends javax.swing.JFrame {
             old_height=0;
 
         }else if(Tools.getSelectedIndex()>0 && Tools.getSelectedIndex() != 4 && draw_figure == true) {
+
             draw_figure =  false;
         }
         int radius = 3;
@@ -287,6 +292,7 @@ public class NewJFrame extends javax.swing.JFrame {
             ListX.add(evt.getX());
             ListY.add(evt.getY());
             grafika.fillOval(evt.getX()- radius, evt.getY() - radius, 2*radius, 2*radius);
+            preview.repaint();
             if(ListX.size() >2 && evt.getX() > (ListX.get(0) - 20)&& evt.getX() < (ListX.get(0) + 20) && evt.getY() > (ListY.get(0) - 20)&& evt.getY() < (ListY.get(0) + 20) ){
                 int size = ListX.size();
                 ListX.remove(size-1);
@@ -305,6 +311,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
                 grafika.setColor(brushColor);
                 grafika.fillPolygon(arrayx, arrayy, arrayy.length);
+                preview.repaint();
 
 
 
@@ -344,28 +351,37 @@ public class NewJFrame extends javax.swing.JFrame {
             int height  = evt.getY()  - b;
 
             grafika = (Graphics2D)canvas.createGraphics();
+            previewgrafika = (Graphics2D) canvas_preview.createGraphics();
+
             if (Tools.getSelectedIndex() == 1)
             {
+
                 grafika.setColor(Color.WHITE);
                 grafika.fillRect(first_mouse_x, first_mouse_y, old_width, old_height);
+                preview.repaint();
                 grafika.setColor(brushColor);
                 grafika.fillRect(first_mouse_x, first_mouse_y, width, height);
+                preview.repaint();
             }
             if (Tools.getSelectedIndex() == 3)
             {
                 grafika.setColor(Color.WHITE);
                 grafika.fillOval(first_mouse_x, first_mouse_y, old_width, old_height);
+                preview.repaint();
                 grafika.setColor(brushColor);
                 grafika.fillOval(first_mouse_x, first_mouse_y, width, height);
+                preview.repaint();
 
             }
             if (Tools.getSelectedIndex() == 2)
             {
-
+                grafika.setStroke(new BasicStroke(Width.getSelectedIndex()+1));
                 grafika.setColor(Color.WHITE);
                 grafika.drawLine(first_mouse_x, first_mouse_y, old_evtx, old_evty);
+                preview.repaint();
                 grafika.setColor(brushColor);
                 grafika.drawLine(first_mouse_x, first_mouse_y, evt.getX(), evt.getY());
+                preview.repaint();
 
             }
             if (Tools.getSelectedIndex() == 4)
@@ -373,8 +389,10 @@ public class NewJFrame extends javax.swing.JFrame {
 
                 grafika.setColor(Color.WHITE);
                 grafika.drawLine(first_mouse_x, first_mouse_y, old_evtx, old_evty);
+                preview.repaint();
                 grafika.setColor(brushColor);
                 grafika.drawLine(first_mouse_x, first_mouse_y, evt.getX(), evt.getY());
+                preview.repaint();
 
             }
             old_width = width;
@@ -383,8 +401,19 @@ public class NewJFrame extends javax.swing.JFrame {
             old_height = height;
 
         }
-    }                                  
-
+    }
+    private class DrawingPanel extends javax.swing.JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (canvas != null) {
+                g.drawImage(canvas, 0, 0, null);
+            }
+            if (canvas_preview != null) {
+                g.drawImage(canvas_preview, 0, 0, this);
+            }
+        }
+    }
     /**
      * @param args the command line arguments
      */
